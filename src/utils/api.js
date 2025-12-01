@@ -87,3 +87,23 @@ export const createHighlight = (data) => api.post('/highlights', data)
 export const updateHighlight = (id, data) => api.put(`/highlights/${id}`, data)
 export const deleteHighlight = (id) => api.delete(`/highlights/${id}`)
 
+// Uploads
+export const uploadImage = async (file) => {
+  const formData = new FormData()
+  formData.append('image', file)
+  const response = await fetch(`${API_BASE_URL}/uploads`, {
+    method: 'POST',
+    // Do NOT set Content-Type for multipart; browser will set boundary
+    headers: (() => {
+      const token = localStorage.getItem('token')
+      return token ? { 'Authorization': `Bearer ${token}` } : {}
+    })(),
+    body: formData
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Upload failed' }))
+    throw new Error(error.message || `HTTP ${response.status}`)
+  }
+  return response.json() // { url }
+}
+

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Card, PlayerCard, Button, Spinner, Modal, Input, Select } from '@montana-state-club-soccer/mscss'
 import { useAuth } from '../hooks/useAuth'
-import { getPlayers, deletePlayer, createPlayer } from '../utils/api'
+import { getPlayers, deletePlayer, createPlayer, uploadImage } from '../utils/api'
 
 function Roster() {
   const [players, setPlayers] = useState([])
@@ -10,6 +10,8 @@ function Roster() {
   const [error, setError] = useState(null)
   const [showAddPlayer, setShowAddPlayer] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
   const [form, setForm] = useState({
     name: '',
     position: '',
@@ -54,6 +56,7 @@ function Roster() {
 
   const resetForm = () => {
     setForm({ name: '', position: '', number: '', year: '', imageUrl: '' })
+    setUploadError('')
   }
 
   const handleCreatePlayer = async () => {
@@ -80,6 +83,21 @@ function Roster() {
       console.error(err)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleImageSelect = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadError('')
+    try {
+      setUploading(true)
+      const { url } = await uploadImage(file)
+      setForm((prev) => ({ ...prev, imageUrl: url }))
+    } catch (err) {
+      setUploadError(err.message || 'Image upload failed')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -146,6 +164,7 @@ function Roster() {
                   name={player.name}
                   number={player.number}
                   position={player.position}
+                  image={player.imageUrl}
                   subtitle={player.year}
                 />
                 {isAdmin && (
@@ -218,13 +237,29 @@ function Roster() {
               <option value="Senior">Senior</option>
               <option value="Graduate">Graduate</option>
             </Select>
-            <Input
-              label="Image URL (optional)"
-              type="url"
-              placeholder="https://..."
-              value={form.imageUrl}
-              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-            />
+              <div className="space-y-2">
+                <Input
+                  label="Upload Photo (optional)"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImageSelect}
+                />
+                {uploading && <p className="text-sm text-gray-600">Uploading...</p>}
+                {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
+                <Input
+                  label="Or Image URL"
+                  type="url"
+                  placeholder="https://..."
+                  value={form.imageUrl}
+                  onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                />
+                {form.imageUrl && (
+                  <div className="mt-2">
+                    <img src={form.imageUrl} alt="Preview" className="h-24 w-24 object-cover rounded" />
+                  </div>
+                )}
+              </div>
           </div>
         </Modal>
       )}
