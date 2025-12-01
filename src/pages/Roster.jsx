@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Card, PlayerCard, Button, Spinner, Modal, Input, Select } from '@montana-state-club-soccer/mscss'
 import { useAuth } from '../hooks/useAuth'
-import { getPlayers, deletePlayer, createPlayer, uploadImage } from '../utils/api'
+import { getPlayers, deletePlayer, createPlayer, updatePlayer, uploadImage } from '../utils/api'
 
 function Roster() {
   const [players, setPlayers] = useState([])
@@ -12,6 +12,18 @@ function Roster() {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
+  const [showEditPlayer, setShowEditPlayer] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [editForm, setEditForm] = useState({
+    name: '',
+    position: '',
+    number: '',
+    year: '',
+    imageUrl: ''
+  })
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [uploadingEdit, setUploadingEdit] = useState(false)
+  const [uploadErrorEdit, setUploadErrorEdit] = useState('')
   const [form, setForm] = useState({
     name: '',
     position: '',
@@ -59,6 +71,12 @@ function Roster() {
     setUploadError('')
   }
 
+  const resetEditForm = () => {
+    setEditingId(null)
+    setEditForm({ name: '', position: '', number: '', year: '', imageUrl: '' })
+    setUploadErrorEdit('')
+  }
+
   const handleCreatePlayer = async () => {
     if (!form.name || !form.position) {
       alert('Name and position are required')
@@ -98,6 +116,59 @@ function Roster() {
       setUploadError(err.message || 'Image upload failed')
     } finally {
       setUploading(false)
+    }
+  }
+
+  const startEditPlayer = (player) => {
+    setEditingId(player._id)
+    setEditForm({
+      name: player.name || '',
+      position: player.position || '',
+      number: player.number ?? '',
+      year: player.year || '',
+      imageUrl: player.imageUrl || ''
+    })
+    setShowEditPlayer(true)
+  }
+
+  const handleImageSelectEdit = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadErrorEdit('')
+    try {
+      setUploadingEdit(true)
+      const { url } = await uploadImage(file)
+      setEditForm((prev) => ({ ...prev, imageUrl: url }))
+    } catch (err) {
+      setUploadErrorEdit(err.message || 'Image upload failed')
+    } finally {
+      setUploadingEdit(false)
+    }
+  }
+
+  const handleUpdatePlayer = async () => {
+    if (!editForm.name || !editForm.position) {
+      alert('Name and position are required')
+      return
+    }
+    try {
+      setSavingEdit(true)
+      const payload = {
+        name: editForm.name.trim(),
+        position: editForm.position.trim(),
+        number: editForm.number !== '' ? Number(editForm.number) : undefined,
+        year: editForm.year || undefined,
+        imageUrl: editForm.imageUrl || undefined
+      }
+      const updated = await updatePlayer(editingId, payload)
+      setPlayers((prev) => prev.map(p => p._id === editingId ? updated : p))
+      setShowEditPlayer(false)
+      resetEditForm()
+    } catch (err) {
+      alert(err.message || 'Failed to update player')
+      console.error(err)
+    } finally {
+      setSavingEdit(false)
     }
   }
 
@@ -169,7 +240,7 @@ function Roster() {
                 />
                 {isAdmin && (
                   <div className="absolute top-2 right-2 flex gap-1">
-                    <Button variant="outlined" size="sm">Edit</Button>
+                    <Button variant="outlined" size="sm" onClick={() => startEditPlayer(player)}>Edit</Button>
                     <Button 
                       variant="outlined" 
                       size="sm"
@@ -260,6 +331,85 @@ function Roster() {
                   </div>
                 )}
               </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit Player Modal */}
+      {isAdmin && (
+        <Modal
+          isOpen={showEditPlayer}
+          onClose={() => { if (!savingEdit) { setShowEditPlayer(false); resetEditForm() } }}
+          title="Edit Player"
+          footer={
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => { if (!savingEdit) { setShowEditPlayer(false); resetEditForm() } }}>Cancel</Button>
+              <Button variant="primary" onClick={handleUpdatePlayer} disabled={savingEdit}>
+                {savingEdit ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <Input
+              label="Name"
+              placeholder="Player name"
+              value={editForm.name}
+              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+            />
+            <Select
+              label="Position"
+              value={editForm.position}
+              onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
+            >
+              <option value="">Select position</option>
+              <option value="GK">Goalkeeper (GK)</option>
+              <option value="D">Defender (D)</option>
+              <option value="M">Midfielder (M)</option>
+              <option value="F">Forward (F)</option>
+            </Select>
+            <Input
+              label="Number"
+              type="number"
+              placeholder="e.g., 10"
+              value={editForm.number}
+              onChange={(e) => setEditForm({ ...editForm, number: e.target.value })}
+            />
+            <Select
+              label="Year"
+              value={editForm.year}
+              onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
+            >
+              <option value="">Select year</option>
+              <option value="Freshman">Freshman</option>
+              <option value="Sophomore">Sophomore</option>
+              <option value="Junior">Junior</option>
+              <option value="Senior">Senior</option>
+              <option value="Graduate">Graduate</option>
+            </Select>
+            <div className="space-y-2">
+              <Input
+                label="Upload Photo (optional)"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleImageSelectEdit}
+              />
+              {uploadingEdit && <p className="text-sm text-gray-600">Uploading...</p>}
+              {uploadErrorEdit && <p className="text-sm text-red-600">{uploadErrorEdit}</p>}
+              <Input
+                label="Or Image URL"
+                type="url"
+                placeholder="https://..."
+                value={editForm.imageUrl}
+                onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })}
+              />
+              {editForm.imageUrl && (
+                <div className="mt-2">
+                  <img src={editForm.imageUrl} alt="Preview" className="h-24 w-24 object-cover rounded" />
+                </div>
+              )}
+            </div>
           </div>
         </Modal>
       )}
