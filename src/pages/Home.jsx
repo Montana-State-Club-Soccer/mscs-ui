@@ -1,4 +1,4 @@
-import { PlayerCard, MatchCard } from '@montana-state-club-soccer/mscss'
+import { PlayerCard, MatchCard, TabsList, TabsContent, Tabs, TabsTrigger } from '@montana-state-club-soccer/mscss'
 import PlayerImage from '../images/team.jpg';
 
 function Home() {
@@ -32,6 +32,34 @@ function Home() {
         status="upcoming"
         time="20:00"
       />
+      
+      <Tabs className = "mt-6" defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="details">Details</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <div className="space-y-2">
+            <h3 className="font-bold">Overview</h3>
+            <p>This is the overview section with more detailed content.</p>
+            <ul className="list-disc list-inside">
+              <li>Point 1</li>
+              <li>Point 2</li>
+              <li>Point 3</li>
+            </ul>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="details">
+          <div className="space-y-2">
+            <h3 className="font-bold">Details</h3>
+            <p>This section contains detailed information.</p>
+          </div>
+        </TabsContent>
+
+      </Tabs>
+
     </div>
   )
 }
