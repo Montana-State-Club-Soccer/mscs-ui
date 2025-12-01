@@ -1,0 +1,58 @@
+import { Link } from 'react-router-dom'
+import { Button } from '@montana-state-club-soccer/mscss'
+
+function Header() {
+  return (
+    <header className="bg-[#003865] text-white shadow-lg">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-20">
+          {/* Logo/Brand */}
+          <Link to="/" className="flex items-center space-x-3">
+            <div className="text-2xl font-bold">
+              <span className="text-[#FFC72C]">MSCS</span>
+            </div>
+            <div className="hidden md:block">
+              <div className="text-sm font-semibold">Montana State</div>
+              <div className="text-xs">Club Soccer</div>
+            </div>
+          </Link>
+
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link to="/" className="hover:text-[#FFC72C] transition-colors">
+              Home
+            </Link>
+            <Link to="/schedule" className="hover:text-[#FFC72C] transition-colors">
+              Schedule
+            </Link>
+            <Link to="/roster" className="hover:text-[#FFC72C] transition-colors">
+              Roster
+            </Link>
+            <Link to="/results" className="hover:text-[#FFC72C] transition-colors">
+              Results
+            </Link>
+            <Link to="/about" className="hover:text-[#FFC72C] transition-colors">
+              About
+            </Link>
+          </nav>
+
+          {/* CTA Button */}
+          <div className="hidden md:block">
+            <Button variant="secondary" size="sm">
+              Join the Team
+            </Button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button className="md:hidden p-2 rounded hover:bg-[#003865]/80">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+export default Header
