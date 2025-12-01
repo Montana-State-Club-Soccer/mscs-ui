@@ -1,7 +1,7 @@
 import { Header, Footer, Button, Logo } from '@montana-state-club-soccer/mscss'
 import { useNavigate } from 'react-router-dom'
 
-function Layout({ children }) {
+const Layout = ({ children }) => {
   const navigate = useNavigate()
   return (
     <div className="min-h-screen flex flex-col bg-gray-500">
@@ -14,26 +14,11 @@ function Layout({ children }) {
         }
         logo={<Logo size="md" />}
         navItems={[
-          {
-            href: '/',
-            label: 'Home'
-          },
-          {
-            href: '/schedule',
-            label: 'Schedule'
-          },
-          {
-            href: '/roster',
-            label: 'Roster'
-          },
-          {
-            href: '/results',
-            label: 'Results'
-          },
-          {
-            href: '/about',
-            label: 'About'
-          }
+          { href: '/', label: 'Home' },
+          { href: '/schedule', label: 'Schedule' },
+          { href: '/roster', label: 'Roster' },
+          { href: '/results', label: 'Results' },
+          { href: '/about', label: 'About' }
         ]}
       />
       <main className="flex-grow">
@@ -43,7 +28,7 @@ function Layout({ children }) {
           </div>
         </div>
       </main>
-      <Footer 
+      <Footer
         colorScheme="blue"
         copyright={`© ${new Date().getFullYear()} Montana State Club Soccer`}
       />

@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Spinner } from '@montana-state-club-soccer/mscss'
 
-export function RoleGuard({ children, allowedRoles }) {
+export const RoleGuard = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, loading } = useAuth()
 
   if (loading) {
