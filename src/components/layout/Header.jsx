@@ -1,7 +1,16 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@montana-state-club-soccer/mscss'
+import { useAuth } from '../../hooks/useAuth'
 
 function Header() {
+  const navigate = useNavigate()
+  const { isAuthenticated, user, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
   return (
     <header className="bg-[#003865] text-white shadow-lg">
       <div className="container mx-auto px-4">
@@ -36,11 +45,29 @@ function Header() {
             </Link>
           </nav>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
-            <Button variant="secondary" size="sm">
-              Join the Team
-            </Button>
+          {/* Auth / CTA */}
+          <div className="hidden md:flex items-center gap-3">
+            {!isAuthenticated ? (
+              <>
+                <Link to="/login" className="hover:text-[#FFC72C] transition-colors">
+                  Login
+                </Link>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => window.open('https://catsconnect.montana.edu/organization/msuclubsoccer', '_blank', 'noreferrer')}
+                >
+                  Join the Team
+                </Button>
+              </>
+            ) : (
+              <>
+                <span className="text-sm opacity-90">{user?.name || user?.email}</span>
+                <Button variant="secondary" size="sm" onClick={handleLogout}>
+                  Logout
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
