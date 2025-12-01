@@ -1,13 +1,22 @@
 import { useState, useEffect } from 'react'
-import { Card, PlayerCard, Button, Spinner } from '@montana-state-club-soccer/mscss'
+import { Card, PlayerCard, Button, Spinner, Modal, Input, Select } from '@montana-state-club-soccer/mscss'
 import { useAuth } from '../hooks/useAuth'
-import { getPlayers, deletePlayer } from '../utils/api'
+import { getPlayers, deletePlayer, createPlayer } from '../utils/api'
 
 function Roster() {
   const [players, setPlayers] = useState([])
   const [coaches, setCoaches] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showAddPlayer, setShowAddPlayer] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState({
+    name: '',
+    position: '',
+    number: '',
+    year: '',
+    imageUrl: ''
+  })
   const { isAdmin } = useAuth()
 
   useEffect(() => {
@@ -43,6 +52,37 @@ function Roster() {
     }
   }
 
+  const resetForm = () => {
+    setForm({ name: '', position: '', number: '', year: '', imageUrl: '' })
+  }
+
+  const handleCreatePlayer = async () => {
+    if (!form.name || !form.position) {
+      alert('Name and position are required')
+      return
+    }
+    try {
+      setSaving(true)
+      const payload = {
+        name: form.name.trim(),
+        position: form.position.trim(),
+        number: form.number !== '' ? Number(form.number) : undefined,
+        year: form.year || undefined,
+        imageUrl: form.imageUrl || undefined,
+        isCoach: false
+      }
+      const created = await createPlayer(payload)
+      setPlayers(prev => [created, ...prev])
+      setShowAddPlayer(false)
+      resetForm()
+    } catch (err) {
+      alert(err.message || 'Failed to create player')
+      console.error(err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return <div className="flex justify-center py-12"><Spinner label="Loading roster..." /></div>
   }
@@ -56,7 +96,7 @@ function Roster() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Team Roster</h1>
         {isAdmin && (
-          <Button variant="primary">Add Player</Button>
+          <Button variant="primary" onClick={() => setShowAddPlayer(true)}>Add Player</Button>
         )}
       </div>
 
@@ -125,6 +165,69 @@ function Roster() {
           </div>
         )}
       </section>
+
+      {/* Add Player Modal */}
+      {isAdmin && (
+        <Modal
+          isOpen={showAddPlayer}
+          onClose={() => { if (!saving) { setShowAddPlayer(false); resetForm() } }}
+          title="Add Player"
+          footer={
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => { if (!saving) { setShowAddPlayer(false); resetForm() } }}>Cancel</Button>
+              <Button variant="primary" onClick={handleCreatePlayer} disabled={saving}>
+                {saving ? 'Saving...' : 'Save Player'}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <Input
+              label="Name"
+              placeholder="Player name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            <Select
+              label="Position"
+              value={form.position}
+              onChange={(e) => setForm({ ...form, position: e.target.value })}
+            >
+              <option value="">Select position</option>
+              <option value="GK">Goalkeeper (GK)</option>
+              <option value="D">Defender (D)</option>
+              <option value="M">Midfielder (M)</option>
+              <option value="F">Forward (F)</option>
+            </Select>
+            <Input
+              label="Number"
+              type="number"
+              placeholder="e.g., 10"
+              value={form.number}
+              onChange={(e) => setForm({ ...form, number: e.target.value })}
+            />
+            <Select
+              label="Year"
+              value={form.year}
+              onChange={(e) => setForm({ ...form, year: e.target.value })}
+            >
+              <option value="">Select year</option>
+              <option value="Freshman">Freshman</option>
+              <option value="Sophomore">Sophomore</option>
+              <option value="Junior">Junior</option>
+              <option value="Senior">Senior</option>
+              <option value="Graduate">Graduate</option>
+            </Select>
+            <Input
+              label="Image URL (optional)"
+              type="url"
+              placeholder="https://..."
+              value={form.imageUrl}
+              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+            />
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }
