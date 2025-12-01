@@ -58,10 +58,10 @@ export const deleteGame = (id) => api.delete(`/schedule/${id}`)
 
 // Roster API calls
 export const getRoster = () => api.get('/roster')
-export const getPlayers = () => api.get('/players')
-export const createPlayer = (data) => api.post('/players', data)
-export const updatePlayer = (id, data) => api.put(`/players/${id}`, data)
-export const deletePlayer = (id) => api.delete(`/players/${id}`)
+export const getPlayers = () => api.get('/roster')
+export const createPlayer = (data) => api.post('/roster', data)
+export const updatePlayer = (id, data) => api.put(`/roster/${id}`, data)
+export const deletePlayer = (id) => api.delete(`/roster/${id}`)
 
 // Results API calls
 export const getResults = () => api.get('/results')

@@ -21,8 +21,8 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      // TODO: Replace with your actual API endpoint
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

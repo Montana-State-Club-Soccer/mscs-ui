@@ -18,9 +18,11 @@ function Roster() {
     try {
       setLoading(true)
       const data = await getPlayers()
-      // Assuming API returns { players: [], coaches: [] }
-      setPlayers(data.players || [])
-      setCoaches(data.coaches || [])
+      // API returns array of roster members, separate by isCoach
+      const coachList = data.filter(member => member.isCoach)
+      const playerList = data.filter(member => !member.isCoach)
+      setCoaches(coachList)
+      setPlayers(playerList)
     } catch (err) {
       setError('Failed to load roster')
       console.error(err)
@@ -34,7 +36,7 @@ function Roster() {
     
     try {
       await deletePlayer(id)
-      setPlayers(players.filter(p => p.id !== id))
+      setPlayers(players.filter(p => p._id !== id))
     } catch (err) {
       alert('Failed to delete player')
       console.error(err)
@@ -71,11 +73,11 @@ function Roster() {
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
             {coaches.map(coach => (
-              <Card key={coach.id} colorScheme="gold" variant="outlined">
+              <Card key={coach._id} colorScheme="gold" variant="outlined">
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-xl font-bold">{coach.name}</h3>
-                    <p className="text-gray-600">{coach.role}</p>
+                    <p className="text-gray-600">{coach.position}</p>
                   </div>
                   {isAdmin && (
                     <div className="flex gap-2">
@@ -97,7 +99,7 @@ function Roster() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {players.map(player => (
-              <div key={player.id} className="relative">
+              <div key={player._id} className="relative">
                 <PlayerCard
                   colorScheme="gold"
                   variant="secondary"
@@ -112,7 +114,7 @@ function Roster() {
                     <Button 
                       variant="outlined" 
                       size="sm"
-                      onClick={() => handleDeletePlayer(player.id)}
+                      onClick={() => handleDeletePlayer(player._id)}
                     >
                       Delete
                     </Button>

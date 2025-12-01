@@ -31,7 +31,7 @@ function Schedule() {
     
     try {
       await deleteGame(id)
-      setGames(games.filter(g => g.id !== id))
+      setGames(games.filter(g => g._id !== id))
     } catch (err) {
       alert('Failed to delete game')
       console.error(err)
@@ -60,33 +60,28 @@ function Schedule() {
       ) : (
         <div className="space-y-4">
           {games.map(game => (
-            <Card key={game.id} colorScheme="gold" variant="outlined">
+            <Card key={game._id} colorScheme="gold" variant="outlined">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-xl font-bold">vs {game.opponent}</h3>
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      game.type === 'Home' 
+                      game.homeAway === 'home' 
                         ? 'bg-[#003865] text-white' 
                         : 'bg-gray-200 text-gray-700'
                     }`}>
-                      {game.type}
+                      {game.homeAway?.toUpperCase()}
                     </span>
-                    {game.status === 'upcoming' && (
+                    {!game.isCompleted && (
                       <span className="px-3 py-1 rounded-full text-sm font-semibold bg-[#FFC72C] text-[#003865]">
                         Upcoming
                       </span>
                     )}
                   </div>
                   <div className="text-gray-600">
-                    <p className="font-medium">{game.date} at {game.time}</p>
+                    <p className="font-medium">{new Date(game.date).toLocaleDateString()} at {game.time}</p>
                     <p className="text-sm">{game.location}</p>
                   </div>
-                  {game.score && (
-                    <div className="mt-2 text-2xl font-bold text-[#003865]">
-                      {game.score}
-                    </div>
-                  )}
                 </div>
                 
                 {isAdmin && (
@@ -95,7 +90,7 @@ function Schedule() {
                     <Button 
                       variant="outlined" 
                       size="sm"
-                      onClick={() => handleDelete(game.id)}
+                      onClick={() => handleDelete(game._id)}
                     >
                       Delete
                     </Button>
