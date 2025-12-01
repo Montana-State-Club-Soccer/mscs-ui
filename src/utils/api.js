@@ -16,7 +16,10 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: getAuthHeaders()
     })
-    if (!response.ok) throw new Error('Network response was not ok')
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }))
+      throw new Error(error.message || `HTTP ${response.status}`)
+    }
     return response.json()
   },
 
@@ -26,7 +29,10 @@ export const api = {
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     })
-    if (!response.ok) throw new Error('Network response was not ok')
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }))
+      throw new Error(error.message || `HTTP ${response.status}`)
+    }
     return response.json()
   },
 
@@ -36,7 +42,10 @@ export const api = {
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     })
-    if (!response.ok) throw new Error('Network response was not ok')
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }))
+      throw new Error(error.message || `HTTP ${response.status}`)
+    }
     return response.json()
   },
 
@@ -45,7 +54,10 @@ export const api = {
       method: 'DELETE',
       headers: getAuthHeaders(),
     })
-    if (!response.ok) throw new Error('Network response was not ok')
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }))
+      throw new Error(error.message || `HTTP ${response.status}`)
+    }
     return response.json()
   }
 }
@@ -58,7 +70,6 @@ export const deleteGame = (id) => api.delete(`/schedule/${id}`)
 
 // Roster API calls
 export const getRoster = () => api.get('/roster')
-export const getPlayers = () => api.get('/roster')
 export const createPlayer = (data) => api.post('/roster', data)
 export const updatePlayer = (id, data) => api.put(`/roster/${id}`, data)
 export const deletePlayer = (id) => api.delete(`/roster/${id}`)
