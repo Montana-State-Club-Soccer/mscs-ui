@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "dev:ui+api",
+			"type": "shell",
+			"command": "$apiDir = \"c:\\Users\\Landon F\\school\\csci331-Web-Development\\mscs-api\"; $uiDir = \"c:\\Users\\Landon F\\school\\csci331-Web-Development\\mscs-ui\"; function IsPortOpen([int]$p){ (Test-NetConnection -ComputerName localhost -Port $p -WarningAction SilentlyContinue).TcpTestSucceeded }; $started = @(); if (-not (IsPortOpen 5000)) { if (Get-Job -Name mscs_api -ErrorAction SilentlyContinue) { Stop-Job mscs_api; Remove-Job mscs_api }; Start-Job -Name mscs_api -ScriptBlock { param($dir,$mongo) Push-Location $dir; $env:PORT=\"5000\"; $env:MONGO_URI=$mongo; npm run dev } -ArgumentList $apiDir,\"mongodb://127.0.0.1:27017/mscs\"; $started += 'mscs_api' } else { Write-Host \"API already listening on 5000\" }; if (-not (IsPortOpen 3000)) { if (Get-Job -Name mscs_ui -ErrorAction SilentlyContinue) { Stop-Job mscs_ui; Remove-Job mscs_ui }; Start-Job -Name mscs_ui -ScriptBlock { param($dir) Push-Location $dir; npm run dev } -ArgumentList $uiDir; $started += 'mscs_ui' } else { Write-Host \"UI already listening on 3000\" }; if ($started.Count -gt 0) { Write-Host (\"Started: {0}\" -f ($started -join ', ')); Wait-Job -Name $started } else { Write-Host \"UI/API already running\"; while ($true) { Start-Sleep -Seconds 300 } }",
+			"isBackground": true,
+			"group": "build"
+		}
+	]
+}
