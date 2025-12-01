@@ -1,12 +1,14 @@
 import { Header, Footer, Button, Logo } from '@montana-state-club-soccer/mscss'
+import { useNavigate } from 'react-router-dom'
 
 function Layout({ children }) {
+  const navigate = useNavigate()
   return (
     <div className="min-h-screen flex flex-col bg-gray-500">
       <Header
         actions={
           <>
-            <Button variant="secondary">Sign In</Button>
+            <Button variant="secondary" onClick={() => navigate('/login')}>Sign In</Button>
             <Button variant="primary">Join Team</Button>
           </>
         }
