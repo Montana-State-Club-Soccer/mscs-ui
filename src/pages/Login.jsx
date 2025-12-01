@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { Button, Input, Card } from '@montana-state-club-soccer/mscss'
@@ -9,8 +9,13 @@ function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   
-  const { login } = useAuth()
+  const { login, isAuthenticated, user, logout } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (isAuthenticated) {
+    }
+  }, [isAuthenticated])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -41,6 +46,14 @@ function Login() {
           </div>
         )}
 
+        {isAuthenticated && (
+          <div className="bg-blue-50 text-blue-700 p-3 rounded-lg mb-4 flex items-center justify-between">
+            <span>Signed in as {user?.email || user?.name}. You can sign out below.</span>
+            <Button variant="secondary" onClick={() => { logout(); navigate('/login') }}>Sign Out</Button>
+          </div>
+        )}
+
+        {!isAuthenticated && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -77,6 +90,7 @@ function Login() {
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
+        )}
       </Card>
     </div>
   )
