@@ -87,6 +87,12 @@ export const createHighlight = (data) => api.post('/highlights', data)
 export const updateHighlight = (id, data) => api.put(`/highlights/${id}`, data)
 export const deleteHighlight = (id) => api.delete(`/highlights/${id}`)
 
+// Event API calls
+export const getEvents = () => api.get('/events')
+export const createEvent = (data) => api.post('/events', data)
+export const updateEvent = (id, data) => api.put(`/events/${id}`, data)
+export const deleteEvent = (id) => api.delete(`/events/${id}`)
+
 // Uploads
 export const uploadImage = async (file) => {
   const formData = new FormData()
