@@ -18,6 +18,18 @@ function Schedule() {
     isCompleted: false,
     score: '',
   })
+  const [showEditGame, setShowEditGame] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [editForm, setEditForm] = useState({
+    opponent: '',
+    date: '',
+    time: '',
+    location: '',
+    homeAway: 'home',
+    isCompleted: false,
+    score: '',
+  })
   const { isAdmin } = useAuth()
 
   useEffect(() => {
@@ -91,6 +103,64 @@ function Schedule() {
     }
   }
 
+  const resetEditForm = () => {
+    setEditingId(null)
+    setEditForm({
+      opponent: '',
+      date: '',
+      time: '',
+      location: '',
+      homeAway: 'home',
+      isCompleted: false,
+      score: ''
+    })
+  }
+
+  const startEditGame = (game) => {
+    setEditingId(game._id)
+    setEditForm({
+      opponent: game.opponent || '',
+      date: game.date ? new Date(game.date).toISOString().split('T')[0] : '',
+      time: game.time || '',
+      location: game.location || '',
+      homeAway: game.homeAway || 'home',
+      isCompleted: game.isCompleted || false,
+      score: game.score || '',
+    })
+    setShowEditGame(true)
+  }
+
+  const handleUpdateGame = async () => {
+    if (!editForm.opponent || !editForm.date || !editForm.time || !editForm.location || !editingId) {
+      alert('Opponent, Date, Time, and Location are required')
+      return
+    }
+
+    try {
+      setSavingEdit(true)
+      const payload = {
+        ...editForm,
+        date: new Date(editForm.date).toISOString(),
+        time: editForm.time.trim(),
+        location: editForm.location.trim(),
+        score: editForm.score || undefined,
+        isCompleted: !!editForm.score,
+      }
+
+      const updated = await updateGame(editingId, payload)
+
+      setGames(prev => prev.map(g => g._id === editingId ? updated : g))
+
+      setShowEditGame(false)
+      resetEditForm()
+    } catch (err) {
+      alert(err.message || 'Failed to update game')
+      console.error(err)
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
   if (loading) {
     return <div className="flex justify-center py-12"><Spinner label="Loading schedule..." /></div>
   }
@@ -113,20 +183,26 @@ function Schedule() {
       ) : (
         <div className="space-y-4">
           {games.map(game => (
-            <div key={game._id} className="relative"> {/* Use a div wrapper for the absolute position admin buttons */}
-              <MatchCard // <--- USING THE NEW COMPONENT
+            <div key={game._id} className="relative">
+              <MatchCard
                 homeTeam={game.homeAway === 'home' ? 'Montana State' : game.opponent}
                 awayTeam={game.homeAway === 'away' ? 'Montana State' : game.opponent}
                 date={new Date(game.date).toLocaleDateString()}
                 time={game.time}
                 location={game.location}
                 status={game.isCompleted ? 'completed' : 'upcoming'}
-                score={game.isCompleted ? game.score : undefined} // Pass score only if completed
+                score={game.isCompleted ? game.score : undefined}
                 colorScheme="gold"
               />
               {isAdmin && (
-                <div className="absolute top-2 right-2 flex gap-2"> {/* Position admin buttons over the card */}
-                  <Button variant="outlined" size="sm">Edit</Button> {/* Placeholder for edit */}
+                <div className="absolute top-2 right-2 flex gap-2">
+                  <Button
+                    variant="outlined"
+                    size="sm"
+                    onClick={() => startEditGame(game)}
+                  >
+                    Edit
+                  </Button>
                   <Button
                     variant="outlined"
                     size="sm"
@@ -140,7 +216,7 @@ function Schedule() {
           ))}
         </div>
       )}
-      
+
       {/* Add Game Modal */}
       {isAdmin && (
         <Modal
@@ -194,6 +270,68 @@ function Schedule() {
           </div>
         </Modal>
       )}
+
+      {/* Edit Game Modal */}
+      {isAdmin && (
+        <Modal
+          isOpen={showEditGame} // <--- Use edit state
+          onClose={() => { if (!savingEdit) { setShowEditGame(false); resetEditForm() } }} // <--- Use edit state/handler
+          title="Edit Game" // <--- Change title
+          footer={
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => { if (!savingEdit) { setShowEditGame(false); resetEditForm() } }}>Cancel</Button>
+              <Button variant="primary" onClick={handleUpdateGame} disabled={savingEdit}>
+                {savingEdit ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <Input
+              label="Opponent Name"
+              placeholder="e.g., Carroll College"
+              value={editForm.opponent}
+              onChange={(e) => setEditForm({ ...editForm, opponent: e.target.value })}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Date"
+                type="date"
+                value={editForm.date}
+                onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+              />
+              <Input
+                label="Time"
+                type="time"
+                value={editForm.time}
+                onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
+              />
+            </div>
+            <Input
+              label="Location"
+              placeholder="e.g., Bobcat Stadium"
+              value={editForm.location}
+              onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+            />
+            <Select
+              label="Home or Away"
+              value={editForm.homeAway}
+              onChange={(e) => setEditForm({ ...editForm, homeAway: e.target.value })}
+            >
+              <option value="home">Home</option>
+              <option value="away">Away</option>
+            </Select>
+
+            <Input
+              label="Score (e.g., 3-1)"
+              placeholder="Leave empty for upcoming games"
+              value={editForm.score}
+              onChange={(e) => setEditForm({ ...editForm, score: e.target.value })}
+            />
+          </div>
+        </Modal>
+      )}
+      
     </div>
   )
 }
