@@ -22,9 +22,19 @@ function Roster() {
     year: '',
     imageUrl: ''
   })
+  const [showEditCoach, setShowEditCoach] = useState(false)
+  const [editingCoachId, setEditingCoachId] = useState(null)
+  const [editCoachForm, setEditCoachForm] = useState({
+    name: '',
+    position: '',
+    imageUrl: ''
+  })
   const [savingEdit, setSavingEdit] = useState(false)
   const [uploadingEdit, setUploadingEdit] = useState(false)
   const [uploadErrorEdit, setUploadErrorEdit] = useState('')
+  const [savingCoachEdit, setSavingCoachEdit] = useState(false)
+  const [uploadingCoachEdit, setUploadingCoachEdit] = useState(false)
+  const [uploadErrorCoachEdit, setUploadErrorCoachEdit] = useState('')
   const [form, setForm] = useState({
     name: '',
     position: '',
@@ -63,6 +73,18 @@ function Roster() {
       setPlayers(players.filter(p => p._id !== id))
     } catch (err) {
       alert('Failed to delete player')
+      console.error(err)
+    }
+  }
+
+  const handleDeleteCoach = async (id) => {
+    if (!confirm('Are you sure you want to remove this coach?')) return
+
+    try {
+      await deletePlayer(id)
+      setCoaches(coaches.filter(c => c._id !== id))
+    } catch (err) {
+      alert('Failed to delete coach')
       console.error(err)
     }
   }
@@ -200,6 +222,66 @@ function Roster() {
     }
   }
 
+  const resetEditCoachForm = () => {
+    setEditingCoachId(null)
+    setEditCoachForm({ name: '', position: '', imageUrl: '' })
+    setUploadErrorCoachEdit('')
+  }
+
+  const startEditCoach = (coach) => {
+    setEditingCoachId(coach._id)
+    setEditCoachForm({
+      name: coach.name || '',
+      position: coach.position || '',
+      imageUrl: coach.imageUrl || ''
+    })
+    setShowEditCoach(true)
+  }
+
+  const handleImageSelectCoachEdit = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadErrorCoachEdit('')
+    try {
+      setUploadingCoachEdit(true)
+      const { url } = await uploadImage(file)
+      setEditCoachForm((prev) => ({ ...prev, imageUrl: url }))
+    } catch (err) {
+      setUploadErrorCoachEdit(err.message || 'Image upload failed')
+    } finally {
+      setUploadingCoachEdit(false)
+    }
+  }
+
+  const handleUpdateCoach = async () => {
+    if (!editCoachForm.name || !editCoachForm.position || !editingCoachId) {
+      alert('Name and position are required')
+      return
+    }
+    try {
+      setSavingCoachEdit(true)
+      const payload = {
+        name: editCoachForm.name.trim(),
+        position: editCoachForm.position.trim(),
+        imageUrl: editCoachForm.imageUrl || undefined,
+        number: undefined,
+        year: undefined,
+        isCoach: true,
+      }
+      const updated = await updatePlayer(editingCoachId, payload)
+
+      setCoaches((prev) => prev.map(c => c._id === editingCoachId ? updated : c))
+
+      setShowEditCoach(false)
+      resetEditCoachForm()
+    } catch (err) {
+      alert(err.message || 'Failed to update coach')
+      console.error(err)
+    } finally {
+      setSavingCoachEdit(false)
+    }
+  }
+
   if (loading) {
     return <div className="flex justify-center py-12"><Spinner label="Loading roster..." /></div>
   }
@@ -242,8 +324,8 @@ function Roster() {
                 />
                 {isAdmin && (
                   <div className="absolute top-2 right-2 flex gap-1">
-                    <Button variant="outlined" size="sm">Edit</Button>
-                    <Button variant="outlined" size="sm">Delete</Button>
+                    <Button variant="outlined" size="sm" onClick={() => startEditCoach(coach)}>Edit</Button>
+                    <Button variant="outlined" size="sm" onClick={() => handleDeleteCoach(coach._id)}>Delete</Button>
                   </div>
                 )}
               </div>
@@ -367,6 +449,7 @@ function Roster() {
         </Modal>
       )}
 
+      {/* Add Coach Modal */}
       {isAdmin && (
         <Modal
           isOpen={showAddCoach}
@@ -499,6 +582,62 @@ function Roster() {
           </div>
         </Modal>
       )}
+
+      {/* Edit Coach Modal */}
+      {isAdmin && (
+        <Modal
+          isOpen={showEditCoach}
+          onClose={() => { if (!savingCoachEdit) { setShowEditCoach(false); resetEditCoachForm() } }}
+          title="Edit Coach"
+          footer={
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => { if (!savingCoachEdit) { setShowEditCoach(false); resetEditCoachForm() } }}>Cancel</Button>
+              <Button variant="primary" onClick={handleUpdateCoach} disabled={savingCoachEdit}>
+                {savingCoachEdit ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <Input
+              label="Name"
+              placeholder="Coach name"
+              value={editCoachForm.name}
+              onChange={(e) => setEditCoachForm({ ...editCoachForm, name: e.target.value })}
+            />
+            <Input
+              label="Title/Position"
+              placeholder="Head Coach, Assistant Coach, etc."
+              value={editCoachForm.position}
+              onChange={(e) => setEditCoachForm({ ...editCoachForm, position: e.target.value })}
+            />
+            <div className="space-y-2">
+              <Input
+                label="Upload Photo (optional)"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleImageSelectCoachEdit}
+              />
+              {uploadingCoachEdit && <p className="text-sm text-gray-600">Uploading...</p>}
+              {uploadErrorCoachEdit && <p className="text-sm text-red-600">{uploadErrorCoachEdit}</p>}
+              <Input
+                label="Or Image URL"
+                type="url"
+                placeholder="https://..."
+                value={editCoachForm.imageUrl}
+                onChange={(e) => setEditCoachForm({ ...editCoachForm, imageUrl: e.target.value })}
+              />
+              {editCoachForm.imageUrl && (
+                <div className="mt-2">
+                  <img src={editCoachForm.imageUrl} alt="Preview" className="h-24 w-24 object-cover rounded" />
+                </div>
+              )}
+            </div>
+          </div>
+        </Modal>
+      )}
+
     </div>
   )
 }
