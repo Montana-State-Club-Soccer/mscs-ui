@@ -9,6 +9,7 @@ function Roster() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showAddPlayer, setShowAddPlayer] = useState(false)
+  const [showAddCoach, setShowAddCoach] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
@@ -56,7 +57,7 @@ function Roster() {
 
   const handleDeletePlayer = async (id) => {
     if (!confirm('Are you sure you want to remove this player?')) return
-    
+
     try {
       await deletePlayer(id)
       setPlayers(players.filter(p => p._id !== id))
@@ -98,6 +99,33 @@ function Roster() {
       resetForm()
     } catch (err) {
       alert(err.message || 'Failed to create player')
+      console.error(err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleCreateCoach = async () => {
+    if (!form.name || !form.position) {
+      alert('Name and position are required')
+      return
+    }
+    try {
+      setSaving(true)
+      const payload = {
+        name: form.name.trim(),
+        position: form.position.trim(),
+        number: undefined,
+        year: undefined,
+        imageUrl: form.imageUrl || undefined,
+        isCoach: true
+      }
+      const created = await createPlayer(payload)
+      setCoaches(prev => [created, ...prev])
+      setShowAddCoach(false)
+      resetForm()
+    } catch (err) {
+      alert(err.message || 'Failed to create coach')
       console.error(err)
     } finally {
       setSaving(false)
@@ -194,7 +222,7 @@ function Roster() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Coaching Staff</h2>
           {isAdmin && (
-            <Button variant="outlined" size="sm">Add Coach</Button>
+            <Button variant="outlined" size="sm" onClick={() => setShowAddCoach(true)}>Add Coach</Button>
           )}
         </div>
         {coaches.length === 0 ? (
@@ -202,19 +230,23 @@ function Roster() {
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
             {coaches.map(coach => (
-              <Card key={coach._id} colorScheme="gold" variant="outlined">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-xl font-bold">{coach.name}</h3>
-                    <p className="text-gray-600">{coach.position}</p>
+              <div key={coach._id} className="relative">
+                <PlayerCard
+                  colorScheme="gold"
+                  variant="secondary"
+                  name={coach.name}
+                  number={undefined}
+                  position={coach.position}
+                  image={coach.imageUrl}
+                  subtitle={undefined}
+                />
+                {isAdmin && (
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    <Button variant="outlined" size="sm">Edit</Button>
+                    <Button variant="outlined" size="sm">Delete</Button>
                   </div>
-                  {isAdmin && (
-                    <div className="flex gap-2">
-                      <Button variant="outlined" size="sm">Edit</Button>
-                    </div>
-                  )}
-                </div>
-              </Card>
+                )}
+              </div>
             ))}
           </div>
         )}
@@ -241,8 +273,8 @@ function Roster() {
                 {isAdmin && (
                   <div className="absolute top-2 right-2 flex gap-1">
                     <Button variant="outlined" size="sm" onClick={() => startEditPlayer(player)}>Edit</Button>
-                    <Button 
-                      variant="outlined" 
+                    <Button
+                      variant="outlined"
                       size="sm"
                       onClick={() => handleDeletePlayer(player._id)}
                     >
@@ -308,29 +340,83 @@ function Roster() {
               <option value="Senior">Senior</option>
               <option value="Graduate">Graduate</option>
             </Select>
-              <div className="space-y-2">
-                <Input
-                  label="Upload Photo (optional)"
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleImageSelect}
-                />
-                {uploading && <p className="text-sm text-gray-600">Uploading...</p>}
-                {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
-                <Input
-                  label="Or Image URL"
-                  type="url"
-                  placeholder="https://..."
-                  value={form.imageUrl}
-                  onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                />
-                {form.imageUrl && (
-                  <div className="mt-2">
-                    <img src={form.imageUrl} alt="Preview" className="h-24 w-24 object-cover rounded" />
-                  </div>
-                )}
-              </div>
+            <div className="space-y-2">
+              <Input
+                label="Upload Photo (optional)"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleImageSelect}
+              />
+              {uploading && <p className="text-sm text-gray-600">Uploading...</p>}
+              {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
+              <Input
+                label="Or Image URL"
+                type="url"
+                placeholder="https://..."
+                value={form.imageUrl}
+                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+              />
+              {form.imageUrl && (
+                <div className="mt-2">
+                  <img src={form.imageUrl} alt="Preview" className="h-24 w-24 object-cover rounded" />
+                </div>
+              )}
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {isAdmin && (
+        <Modal
+          isOpen={showAddCoach}
+          onClose={() => { if (!saving) { setShowAddCoach(false); resetForm() } }}
+          title="Add Coach"
+          footer={
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => { if (!saving) { setShowAddCoach(false); resetForm() } }}>Cancel</Button>
+              <Button variant="primary" onClick={handleCreateCoach} disabled={saving}>
+                {saving ? 'Saving...' : 'Save Coach'}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <Input
+              label="Name"
+              placeholder="Coach name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            <Input
+              label="Title/Position"
+              placeholder="Head Coach, Assistant Coach, etc."
+              value={form.position}
+              onChange={(e) => setForm({ ...form, position: e.target.value })}
+            />
+            <div className="space-y-2">
+              <Input
+                label="Upload Photo (optional)"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleImageSelect}
+              />
+              {uploading && <p className="text-sm text-gray-600">Uploading...</p>}
+              {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
+              <Input
+                label="Or Image URL"
+                type="url"
+                placeholder="https://..."
+                value={form.imageUrl}
+                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+              />
+              {form.imageUrl && (
+                <div className="mt-2">
+                  <img src={form.imageUrl} alt="Preview" className="h-24 w-24 object-cover rounded" />
+                </div>
+              )}
+            </div>
           </div>
         </Modal>
       )}
