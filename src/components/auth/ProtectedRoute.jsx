@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Spinner } from 'mscss-montana'
+import { Spinner } from '@montana-state-club-soccer/mscss'
 
 export const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth()

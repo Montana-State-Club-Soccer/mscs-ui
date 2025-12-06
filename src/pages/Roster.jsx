@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card, PlayerCard, Button, Spinner, Modal, Input, Select } from 'mscss-montana'
+import { Card, PlayerCard, Button, Spinner, Modal, Input, Select } from '@montana-state-club-soccer/mscss'
 import { useAuth } from '../hooks/useAuth'
 import { getPlayers, deletePlayer, createPlayer, updatePlayer, uploadImage } from '../utils/api'
 

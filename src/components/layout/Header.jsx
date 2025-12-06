@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Button } from 'mscss-montana'
+import { Button } from '@montana-state-club-soccer/mscss'
 import { useAuth } from '../../hooks/useAuth'
 
 const Header = () => {
