@@ -1,6 +1,8 @@
 // API configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
+console.log('API_BASE_URL configured as:', API_BASE_URL)
+
 // Helper to get auth token
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token')
@@ -13,14 +15,19 @@ const getAuthHeaders = () => {
 // API utility functions
 export const api = {
   async get(endpoint) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const url = `${API_BASE_URL}${endpoint}`
+    console.log('GET request to:', url)
+    const response = await fetch(url, {
       headers: getAuthHeaders()
     })
+    console.log('Response status:', response.status)
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Request failed' }))
       throw new Error(error.message || `HTTP ${response.status}`)
     }
-    return response.json()
+    const data = await response.json()
+    console.log('Response data:', data)
+    return data
   },
 
   async post(endpoint, data) {

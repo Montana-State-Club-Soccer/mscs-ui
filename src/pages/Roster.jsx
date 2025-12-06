@@ -51,15 +51,19 @@ function Roster() {
   const loadRoster = async () => {
     try {
       setLoading(true)
+      setError(null)
       const data = await getPlayers()
+      console.log('Roster data received:', data)
       // API returns array of roster members, separate by isCoach
       const coachList = data.filter(member => member.isCoach)
       const playerList = data.filter(member => !member.isCoach)
+      console.log('Coaches:', coachList)
+      console.log('Players:', playerList)
       setCoaches(coachList)
       setPlayers(playerList)
     } catch (err) {
-      setError('Failed to load roster')
-      console.error(err)
+      console.error('Error loading roster:', err)
+      setError(err.message || 'Failed to load roster')
     } finally {
       setLoading(false)
     }
