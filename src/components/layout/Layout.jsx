@@ -1,4 +1,4 @@
-import { Header, Footer, Button, Logo } from '@montana-state-club-soccer/mscss'
+import { Header, Footer, Button, Logo } from 'mscss-montana'
 import { useNavigate } from 'react-router-dom'
 
 const Layout = ({ children }) => {

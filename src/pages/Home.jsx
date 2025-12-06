@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, ImageBlock, Button, Spinner, Modal, Input, Divider } from '@montana-state-club-soccer/mscss';
+import { Card, ImageBlock, Button, Spinner, Modal, Input, Divider } from 'mscss-montana';
 import { useAuth } from '../hooks/useAuth';
 
 import { getEvents, deleteEvent, createEvent, updateEvent, uploadImage } from '../utils/api'; 

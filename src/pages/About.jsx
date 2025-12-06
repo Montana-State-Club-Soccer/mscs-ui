@@ -1,4 +1,4 @@
-import { Card, ImageBlock, Button, Spinner, Modal, Input, Divider } from '@montana-state-club-soccer/mscss';
+import { Card, ImageBlock, Button, Spinner, Modal, Input, Divider } from 'mscss-montana';
 import PlayerImage from '../images/about-image.jpg';
 import SecondImage from '../images/about-image2.jpg';
 
