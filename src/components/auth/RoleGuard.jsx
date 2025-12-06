@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Spinner } from '@montana-state-club-soccer/mscss'
+import { Spinner } from 'mscss-montana'
 
 export const RoleGuard = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, loading } = useAuth()
